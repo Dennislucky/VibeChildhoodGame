@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>坦克大战</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="shell">
+        <section class="hero-panel">
+            <p class="eyebrow">HTML / Canvas 复刻版</p>
+            <h1>坦克大战</h1>
+            <p class="lead">随机地形、可破坏墙体、多台 AI 坦克与玩家对战的 2D 平面小游戏。</p>
+
+            <div class="controls-card">
+                <div>
+                    <h2>操作方式</h2>
+                    <p>1P：WASD 移动，Space 射击</p>
+                    <p>2P：方向键移动，L 射击</p>
+                </div>
+                <div class="action-group">
+                    <label class="mode-picker" for="modeSelect">
+                        <span>游玩模式</span>
+                        <select id="modeSelect">
+                            <option value="single">单人版</option>
+                            <option value="coop">双人版</option>
+                        </select>
+                    </label>
+                    <button id="restartButton" type="button">重新生成战场</button>
+                </div>
+            </div>
+
+            <div class="legend">
+                <span><i class="tile tile-brick"></i>砖墙可破坏</span>
+                <span><i class="tile tile-steel"></i>钢墙不可破坏</span>
+                <span><i class="tile tile-water"></i>水域阻挡移动</span>
+                <span><i class="tile tile-bush"></i>草丛可穿过</span>
+            </div>
+
+            <div class="status-grid">
+                <article>
+                    <strong id="enemyCount">0</strong>
+                    <span>剩余敌军</span>
+                </article>
+                <article>
+                    <strong id="playerHp">0</strong>
+                    <span id="playerHpText">玩家生命</span>
+                </article>
+                <article>
+                    <strong id="terrainSeed">0000</strong>
+                    <span>地图种子</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="game-panel">
+            <canvas id="gameCanvas" width="832" height="640" aria-label="坦克大战游戏画布"></canvas>
+            <div id="messageOverlay" class="message-overlay hidden"></div>
+        </section>
+    </main>
+
+    <script src="game.js"></script>
+</body>
+</html>
