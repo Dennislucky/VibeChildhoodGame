@@ -1,0 +1,48 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: linear-gradient(135deg, #faf8ef, #eee4da);
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; font-family: 'Arial', sans-serif;
+}
+.game-container { text-align: center; }
+h1 { font-size: 3rem; color: #776e65; margin-bottom: 10px; font-weight: bold; }
+.info-bar {
+    display: flex; justify-content: space-around; margin-bottom: 15px;
+    font-size: 1.1rem; color: #776e65;
+}
+.info-bar span { background: #bbada0; color: #fff; padding: 8px 20px; border-radius: 8px; }
+.board {
+    display: grid; grid-template-columns: repeat(4, 85px); gap: 10px;
+    background: #bbada0; padding: 12px; border-radius: 10px;
+    margin: 0 auto; width: fit-content;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+.tile {
+    width: 85px; height: 85px; border-radius: 6px;
+    display: flex; justify-content: center; align-items: center;
+    font-weight: bold; font-size: 1.8rem;
+    transition: all 0.12s ease;
+}
+.tile-0 { background: rgba(238,228,218,0.35); }
+.tile-2 { background: #eee4da; color: #776e65; }
+.tile-4 { background: #ede0c8; color: #776e65; }
+.tile-8 { background: #f2b179; color: #f9f6f2; }
+.tile-16 { background: #f59563; color: #f9f6f2; }
+.tile-32 { background: #f67c5f; color: #f9f6f2; }
+.tile-64 { background: #f65e3b; color: #f9f6f2; }
+.tile-128 { background: #edcf72; color: #f9f6f2; font-size: 1.5rem; }
+.tile-256 { background: #edcc61; color: #f9f6f2; font-size: 1.5rem; }
+.tile-512 { background: #edc850; color: #f9f6f2; font-size: 1.5rem; }
+.tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 1.2rem; }
+.tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 1.2rem; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+.tile-super { background: #3c3a32; color: #f9f6f2; font-size: 1rem; }
+#newGameBtn {
+    margin-top: 15px; padding: 10px 30px; font-size: 1.1rem;
+    border: none; border-radius: 8px; cursor: pointer;
+    background: #8f7a66; color: #f9f6f2; font-weight: bold;
+    transition: background 0.3s;
+}
+#newGameBtn:hover { background: #9f8b77; }
+#message { margin-top: 10px; font-size: 0.95rem; color: #776e65; min-height: 1.5em; }
+@keyframes pop { 0% { transform: scale(0); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+.tile-new { animation: pop 0.2s ease; }
