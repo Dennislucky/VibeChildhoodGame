@@ -1,0 +1,324 @@
+:root {
+    --bg-top: #d7c7a1;
+    --bg-bottom: #8c5a39;
+    --panel: rgba(35, 24, 18, 0.82);
+    --panel-border: rgba(255, 230, 183, 0.18);
+    --text-main: #fff4db;
+    --text-dim: #d6c4aa;
+    --accent: #ffb347;
+    --accent-strong: #ff6f3c;
+    --canvas-frame: #2f1f18;
+    --shadow: 0 18px 48px rgba(28, 13, 7, 0.28);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Chakra Petch", "Microsoft YaHei", sans-serif;
+    color: var(--text-main);
+    background:
+        radial-gradient(circle at top left, rgba(255, 225, 150, 0.28), transparent 22%),
+        radial-gradient(circle at 85% 20%, rgba(255, 126, 71, 0.22), transparent 18%),
+        linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+    opacity: 0.18;
+}
+
+.shell {
+    width: min(1380px, calc(100vw - 32px));
+    margin: 0 auto;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(280px, 400px) minmax(0, 1fr);
+    gap: 24px;
+    align-items: center;
+    padding: 24px 0;
+}
+
+.hero-panel,
+.game-panel {
+    position: relative;
+    border: 1px solid var(--panel-border);
+    border-radius: 28px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+}
+
+.hero-panel {
+    padding: 28px;
+    overflow: hidden;
+}
+
+.hero-panel::after {
+    content: "";
+    position: absolute;
+    right: -60px;
+    bottom: -60px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(255, 179, 71, 0.22), transparent 68%);
+    border-radius: 50%;
+}
+
+.eyebrow {
+    margin: 0 0 10px;
+    font-size: 14px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+h1,
+h2 {
+    margin: 0;
+    font-family: "ZCOOL QingKe HuangYou", "Microsoft YaHei", cursive;
+    font-weight: 400;
+}
+
+h1 {
+    font-size: clamp(44px, 7vw, 68px);
+    line-height: 0.95;
+}
+
+.lead {
+    margin: 14px 0 26px;
+    color: var(--text-dim);
+    font-size: 17px;
+    line-height: 1.7;
+}
+
+.controls-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.controls-card p {
+    margin: 8px 0 0;
+    color: var(--text-dim);
+}
+
+.action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 168px;
+}
+
+.mode-picker {
+    display: grid;
+    gap: 8px;
+    color: var(--text-dim);
+    font-size: 14px;
+}
+
+.mode-picker span {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.mode-picker select {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font: inherit;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+}
+
+button {
+    border: 0;
+    border-radius: 16px;
+    padding: 14px 18px;
+    min-width: 148px;
+    align-self: center;
+    font: inherit;
+    font-weight: 700;
+    color: #2c1808;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    box-shadow: 0 12px 24px rgba(255, 111, 60, 0.24);
+    transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px rgba(255, 111, 60, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.legend,
+.status-grid {
+    margin-top: 22px;
+}
+
+.legend {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    color: var(--text-dim);
+}
+
+.legend span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tile {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    display: inline-block;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.tile-brick {
+    background: #8e4d2c;
+}
+
+.tile-steel {
+    background: #7e8f98;
+}
+
+.tile-water {
+    background: #2b84c9;
+}
+
+.tile-bush {
+    background: #4e8f43;
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.status-grid article {
+    padding: 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-grid strong {
+    display: block;
+    font-size: 28px;
+    color: var(--accent);
+    min-height: 34px;
+}
+
+.status-grid span {
+    color: var(--text-dim);
+    font-size: 14px;
+}
+
+.game-panel {
+    padding: 16px;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #27351b, #202613);
+    border: 6px solid var(--canvas-frame);
+}
+
+.message-overlay {
+    position: absolute;
+    inset: 24px;
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    white-space: pre-line;
+    padding: 24px;
+    background: rgba(26, 18, 13, 0.72);
+    color: var(--text-main);
+    font-family: "ZCOOL QingKe HuangYou", "Microsoft YaHei", cursive;
+    font-size: clamp(32px, 5vw, 52px);
+    letter-spacing: 0.06em;
+}
+
+.message-overlay.hidden {
+    display: none;
+}
+
+@media (max-width: 1120px) {
+    .shell {
+        grid-template-columns: 1fr;
+        width: min(900px, calc(100vw - 24px));
+    }
+
+    .controls-card {
+        align-items: flex-start;
+    }
+
+    .hero-panel {
+        order: 2;
+    }
+
+    .game-panel {
+        order: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .shell {
+        width: min(100vw - 16px, 900px);
+        gap: 16px;
+        padding: 16px 0;
+    }
+
+    .hero-panel,
+    .game-panel {
+        border-radius: 22px;
+    }
+
+    .hero-panel {
+        padding: 20px;
+    }
+
+    .controls-card,
+    .legend,
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .controls-card {
+        flex-direction: column;
+    }
+
+    .action-group {
+        width: 100%;
+    }
+
+    button {
+        width: 100%;
+    }
+}

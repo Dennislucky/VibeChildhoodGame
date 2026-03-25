@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>造梦西游 - 横版动作RPG</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 主菜单 -->
+    <div id="main-menu" class="screen active">
+        <div class="menu-bg">
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
+            <div class="cloud cloud3"></div>
+            <h1 class="game-title">造梦西游</h1>
+            <p class="subtitle">横版动作RPG</p>
+            <div class="menu-buttons">
+                <button id="btn-new-game" class="menu-btn">开始新游戏</button>
+                <button id="btn-load-game" class="menu-btn">继续游戏</button>
+                <button id="btn-help" class="menu-btn">操作说明</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 角色选择 -->
+    <div id="char-select" class="screen">
+        <h2>选择角色</h2>
+        <div class="char-list">
+            <div class="char-card" data-char="wukong">
+                <div class="char-avatar wukong-avatar">悟空</div>
+                <h3>孙悟空</h3>
+                <p>攻击力: ★★★★★</p>
+                <p>防御力: ★★★☆☆</p>
+                <p>速度:　 ★★★★☆</p>
+                <p class="char-desc">齐天大圣，七十二变，金箍棒横扫千军</p>
+            </div>
+            <div class="char-card" data-char="bajie">
+                <div class="char-avatar bajie-avatar">八戒</div>
+                <h3>猪八戒</h3>
+                <p>攻击力: ★★★★☆</p>
+                <p>防御力: ★★★★★</p>
+                <p>速度:　 ★★☆☆☆</p>
+                <p class="char-desc">天蓬元帅，钉耙无敌，血厚防高</p>
+            </div>
+            <div class="char-card" data-char="wujing">
+                <div class="char-avatar wujing-avatar">悟净</div>
+                <h3>沙悟净</h3>
+                <p>攻击力: ★★★☆☆</p>
+                <p>防御力: ★★★★☆</p>
+                <p>速度:　 ★★★☆☆</p>
+                <p class="char-desc">卷帘大将，降妖宝杖，攻守均衡</p>
+            </div>
+            <div class="char-card" data-char="tangseng">
+                <div class="char-avatar tangseng-avatar">唐僧</div>
+                <h3>唐三藏</h3>
+                <p>攻击力: ★★☆☆☆</p>
+                <p>防御力: ★★☆☆☆</p>
+                <p>速度:　 ★★★☆☆</p>
+                <p class="char-desc">金蝉转世，法力无边，远程法术攻击</p>
+            </div>
+        </div>
+        <button id="btn-back-menu" class="menu-btn back-btn">返回</button>
+    </div>
+
+    <!-- 操作说明 -->
+    <div id="help-screen" class="screen">
+        <h2>操作说明</h2>
+        <div class="help-content">
+            <div class="help-section">
+                <h3>基本操作</h3>
+                <p>← → (A/D) : 移动</p>
+                <p>↑ (W) : 跳跃</p>
+                <p>J : 普通攻击</p>
+                <p>K : 技能攻击</p>
+                <p>L : 必杀技（需满怒气）</p>
+            </div>
+            <div class="help-section">
+                <h3>游戏目标</h3>
+                <p>消灭各关卡敌人，击败Boss，收集装备升级角色</p>
+                <p>每关击败所有敌人后出现Boss</p>
+                <p>击败Boss后进入下一关</p>
+            </div>
+            <div class="help-section">
+                <h3>系统说明</h3>
+                <p>ESC : 暂停/菜单</p>
+                <p>游戏进度自动保存</p>
+                <p>击杀怪物获得经验和金币</p>
+            </div>
+        </div>
+        <button id="btn-back-help" class="menu-btn back-btn">返回</button>
+    </div>
+
+    <!-- 游戏画面 -->
+    <div id="game-screen" class="screen">
+        <canvas id="gameCanvas" width="1000" height="600"></canvas>
+        <!-- HUD -->
+        <div id="game-hud">
+            <div class="hud-left">
+                <div class="hud-char-info">
+                    <span id="hud-char-name">孙悟空</span>
+                    <span id="hud-level">Lv.1</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar hp-bar" id="hp-bar"></div>
+                    <span class="bar-text" id="hp-text">100/100</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar mp-bar" id="mp-bar"></div>
+                    <span class="bar-text" id="mp-text">50/50</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar rage-bar" id="rage-bar"></div>
+                    <span class="bar-text" id="rage-text">0/100</span>
+                </div>
+                <div class="bar-container exp-container">
+                    <div class="bar exp-bar" id="exp-bar"></div>
+                    <span class="bar-text" id="exp-text">0/100</span>
+                </div>
+            </div>
+            <div class="hud-center">
+                <span id="stage-name">第一关：花果山</span>
+            </div>
+            <div class="hud-right">
+                <span id="hud-gold">💰 0</span>
+                <span id="hud-score">得分: 0</span>
+            </div>
+        </div>
+        <!-- 技能栏 -->
+        <div id="skill-bar">
+            <div class="skill-slot" id="skill-j">
+                <span class="skill-key">J</span>
+                <span class="skill-name">攻击</span>
+            </div>
+            <div class="skill-slot" id="skill-k">
+                <span class="skill-key">K</span>
+                <span class="skill-name">技能</span>
+                <div class="skill-cd" id="skill-k-cd"></div>
+            </div>
+            <div class="skill-slot" id="skill-l">
+                <span class="skill-key">L</span>
+                <span class="skill-name">必杀</span>
+                <div class="skill-cd" id="skill-l-cd"></div>
+            </div>
+        </div>
+        <!-- Boss血条 -->
+        <div id="boss-hp-container" class="hidden">
+            <span id="boss-name">BOSS</span>
+            <div class="bar-container boss-bar-container">
+                <div class="bar boss-hp-bar" id="boss-hp-bar"></div>
+                <span class="bar-text" id="boss-hp-text">100/100</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 暂停菜单 -->
+    <div id="pause-menu" class="overlay hidden">
+        <div class="overlay-content">
+            <h2>游戏暂停</h2>
+            <button class="menu-btn" id="btn-resume">继续游戏</button>
+            <button class="menu-btn" id="btn-inventory">背包装备</button>
+            <button class="menu-btn" id="btn-save">保存游戏</button>
+            <button class="menu-btn" id="btn-quit">返回主菜单</button>
+        </div>
+    </div>
+
+    <!-- 背包界面 -->
+    <div id="inventory-screen" class="overlay hidden">
+        <div class="overlay-content inventory-content">
+            <h2>背包装备</h2>
+            <div class="inv-layout">
+                <div class="inv-stats">
+                    <h3>角色属性</h3>
+                    <p>等级: <span id="inv-level">1</span></p>
+                    <p>攻击力: <span id="inv-atk">10</span></p>
+                    <p>防御力: <span id="inv-def">5</span></p>
+                    <p>生命值: <span id="inv-hp">100</span></p>
+                    <p>法力值: <span id="inv-mp">50</span></p>
+                    <p>暴击率: <span id="inv-crit">5%</span></p>
+                    <p>金币: <span id="inv-gold">0</span></p>
+                </div>
+                <div class="inv-equip">
+                    <h3>已装备</h3>
+                    <div class="equip-slot" data-slot="weapon">
+                        <span class="slot-label">武器</span>
+                        <span class="slot-item" id="equip-weapon">无</span>
+                    </div>
+                    <div class="equip-slot" data-slot="armor">
+                        <span class="slot-label">防具</span>
+                        <span class="slot-item" id="equip-armor">无</span>
+                    </div>
+                    <div class="equip-slot" data-slot="accessory">
+                        <span class="slot-label">饰品</span>
+                        <span class="slot-item" id="equip-accessory">无</span>
+                    </div>
+                </div>
+                <div class="inv-bag">
+                    <h3>背包物品</h3>
+                    <div id="inv-items" class="inv-items-grid"></div>
+                </div>
+            </div>
+            <button class="menu-btn back-btn" id="btn-close-inv">关闭</button>
+        </div>
+    </div>
+
+    <!-- 关卡过渡 -->
+    <div id="stage-clear" class="overlay hidden">
+        <div class="overlay-content">
+            <h2 id="clear-title">关卡通过！</h2>
+            <div id="clear-rewards"></div>
+            <button class="menu-btn" id="btn-next-stage">下一关</button>
+        </div>
+    </div>
+
+    <!-- 游戏结束 -->
+    <div id="game-over" class="overlay hidden">
+        <div class="overlay-content">
+            <h2>战败</h2>
+            <p>你在战斗中倒下了...</p>
+            <button class="menu-btn" id="btn-retry">重新挑战</button>
+            <button class="menu-btn" id="btn-go-menu">返回主菜单</button>
+        </div>
+    </div>
+
+    <!-- 升级提示 -->
+    <div id="level-up-notice" class="overlay hidden">
+        <div class="overlay-content level-up-content">
+            <h2>🎉 升级！</h2>
+            <p id="level-up-text">达到 Lv.2</p>
+            <p id="level-up-stats"></p>
+            <button class="menu-btn" id="btn-level-ok">确定</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>疯狂小人战斗 - Crazy Stickman Fight</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen" class="screen">
+            <h1>⚔️ 疯狂小人战斗</h1>
+            <p>火柴人格斗对决！</p>
+            <div class="mode-select">
+                <button onclick="startGame('single')">🎮 单人闯关</button>
+                <button onclick="startGame('pvp')">👥 双人对战</button>
+            </div>
+            <div class="controls-info">
+                <div class="ctrl-col">
+                    <h3>P1 (蓝色)</h3>
+                    <p>A/D 移动 | W 跳跃</p>
+                    <p>F 拳击 | G 踢击</p>
+                </div>
+                <div class="ctrl-col">
+                    <h3>P2 (红色)</h3>
+                    <p>←/→ 移动 | ↑ 跳跃</p>
+                    <p>K 拳击 | L 踢击</p>
+                </div>
+            </div>
+        </div>
+        <div id="game-screen" class="screen" style="display:none;">
+            <div id="hud">
+                <div id="p1-info">
+                    <span class="p-name">P1</span>
+                    <div class="hp-bar"><div id="p1-hp" class="hp-fill blue"></div></div>
+                </div>
+                <div id="round-info">
+                    <span id="round-text">第 1 回合</span>
+                    <span id="timer">60</span>
+                </div>
+                <div id="p2-info">
+                    <div class="hp-bar"><div id="p2-hp" class="hp-fill red"></div></div>
+                    <span class="p-name" id="p2-name">P2</span>
+                </div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        <div id="result-screen" class="screen" style="display:none;">
+            <h1 id="result-text">胜利！</h1>
+            <p id="result-detail"></p>
+            <button onclick="location.reload()">返回主菜单</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

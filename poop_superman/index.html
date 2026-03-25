@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大便超人 - Poop Superman</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen" class="screen">
+            <h1>💩 大便超人</h1>
+            <p>化身大便超人，飞越城市消灭邪恶！</p>
+            <div class="controls-info">
+                <p>⬆️⬇️ 上下飞行 | 空格 发射便便炸弹</p>
+                <p>手机：触摸屏幕上下移动，点击右侧攻击</p>
+            </div>
+            <button onclick="startGame()">起飞！</button>
+        </div>
+        <div id="game-screen" class="screen" style="display:none;">
+            <div id="hud">
+                <div>❤️ <span id="lives">3</span></div>
+                <div>⭐ <span id="score">0</span></div>
+                <div>💣 能量: <span id="energy">100</span>%</div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        <div id="gameover-screen" class="screen" style="display:none;">
+            <h1>💀 游戏结束</h1>
+            <p>最终得分: <span id="final-score">0</span></p>
+            <p>最佳分数: <span id="best-score">0</span></p>
+            <button onclick="startGame()">再来一次</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

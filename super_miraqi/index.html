@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超级米拉奇 - Super Miraqi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen" class="screen">
+            <h1>🦸 超级米拉奇</h1>
+            <p>经典横版过关冒险游戏</p>
+            <div class="controls-info">
+                <p>⬅️➡️ 移动 | ⬆️ 跳跃 | 空格 攻击</p>
+                <p>手机：虚拟按钮操作</p>
+            </div>
+            <button id="start-btn" onclick="startGame()">开始游戏</button>
+        </div>
+        <div id="game-screen" class="screen" style="display:none;">
+            <div id="hud">
+                <div id="hp-bar">
+                    <span>❤️ HP:</span>
+                    <div id="hp-container"><div id="hp-fill"></div></div>
+                </div>
+                <div id="score-display">⭐ <span id="score">0</span></div>
+                <div id="level-display">关卡: <span id="level">1</span></div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+            <div id="mobile-controls">
+                <div class="ctrl-left">
+                    <button id="btn-left" class="ctrl-btn">⬅️</button>
+                    <button id="btn-right" class="ctrl-btn">➡️</button>
+                </div>
+                <div class="ctrl-right">
+                    <button id="btn-jump" class="ctrl-btn">⬆️</button>
+                    <button id="btn-attack" class="ctrl-btn">⚔️</button>
+                </div>
+            </div>
+        </div>
+        <div id="gameover-screen" class="screen" style="display:none;">
+            <h1>游戏结束</h1>
+            <p>得分: <span id="final-score">0</span></p>
+            <p>到达关卡: <span id="final-level">1</span></p>
+            <button onclick="startGame()">重新开始</button>
+        </div>
+        <div id="win-screen" class="screen" style="display:none;">
+            <h1>🎉 恭喜通关！</h1>
+            <p>总得分: <span id="win-score">0</span></p>
+            <button onclick="startGame()">再玩一次</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

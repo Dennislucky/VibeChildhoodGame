@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>混乱大枪战 - Chaotic Gun Battle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen" class="screen">
+            <h1>🔫 混乱大枪战</h1>
+            <p>在混乱的战场上消灭所有敌人！</p>
+            <div class="controls-info">
+                <p>WASD 移动 | 鼠标瞄准 | 左键射击</p>
+                <p>R 换弹 | 1/2/3 切换武器</p>
+            </div>
+            <button onclick="startGame()">开始战斗</button>
+        </div>
+        <div id="game-screen" class="screen" style="display:none;">
+            <div id="hud">
+                <div id="hp-section">❤️ <span id="hp">100</span></div>
+                <div id="weapon-section">🔫 <span id="weapon-name">手枪</span> | 弹药: <span id="ammo">12</span>/<span id="max-ammo">12</span></div>
+                <div id="score-section">💀 <span id="kills">0</span> | 波次: <span id="wave">1</span></div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+            <div id="reload-bar" style="display:none;">
+                <div id="reload-fill"></div>
+                <span>换弹中...</span>
+            </div>
+        </div>
+        <div id="gameover-screen" class="screen" style="display:none;">
+            <h1>💀 阵亡</h1>
+            <p>击杀数: <span id="final-kills">0</span></p>
+            <p>存活波次: <span id="final-wave">1</span></p>
+            <button onclick="startGame()">重新战斗</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

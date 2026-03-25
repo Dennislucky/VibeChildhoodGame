@@ -1,0 +1,28 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; font-family: 'Arial', sans-serif; color: #fff;
+}
+.game-container { text-align: center; }
+h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 0 20px rgba(0,255,100,0.5); }
+.score-board {
+    display: flex; justify-content: space-around; margin-bottom: 10px;
+    font-size: 1.2rem; background: rgba(255,255,255,0.1); padding: 8px 20px;
+    border-radius: 10px;
+}
+canvas {
+    border: 3px solid #0f3460; border-radius: 8px;
+    background: #0a0a1a; display: block; margin: 0 auto;
+    box-shadow: 0 0 30px rgba(0,255,100,0.2);
+}
+.controls { margin-top: 15px; }
+#message { font-size: 1.1rem; color: #53d769; margin-bottom: 10px; }
+.mobile-controls { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.ctrl-row { display: flex; gap: 10px; }
+.ctrl-btn {
+    width: 50px; height: 50px; font-size: 1.2rem; border: none;
+    border-radius: 10px; background: rgba(255,255,255,0.15); color: #fff;
+    cursor: pointer; transition: background 0.2s;
+}
+.ctrl-btn:active { background: rgba(0,255,100,0.4); }

@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI SNAP - 智能对决</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @keyframes bgScroll { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
+        @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes cardPlay { 0% { transform: scale(1.3); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes glowPulse { 0%,100% { box-shadow: 0 0 10px rgba(0,212,255,0.3); } 50% { box-shadow: 0 0 25px rgba(0,212,255,0.6); } }
+        @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        @keyframes titleGlow { 0%,100% { text-shadow: 0 0 20px #00d4ff, 0 0 40px #00d4ff; } 50% { text-shadow: 0 0 40px #00d4ff, 0 0 80px #00d4ff, 0 0 120px #0088ff; } }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: #060a1a;
+            color: #e0e8ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: bgScroll 8s linear infinite;
+        }
+
+        #app {
+            max-width: 1100px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* ===== OVERLAY SCREENS ===== */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(6,10,26,0.95);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .overlay h1 {
+            font-size: 72px; font-weight: 900; letter-spacing: 8px;
+            color: #00d4ff;
+            animation: titleGlow 3s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+        .overlay .subtitle {
+            font-size: 24px; color: #8090c0; margin-bottom: 50px; letter-spacing: 6px;
+        }
+        .overlay .btn-start {
+            padding: 16px 60px; font-size: 22px; font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #0088ff);
+            border: none; border-radius: 30px; color: #fff;
+            cursor: pointer; letter-spacing: 4px;
+            transition: all 0.3s; position: relative; overflow: hidden;
+        }
+        .overlay .btn-start:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 30px rgba(0,212,255,0.5);
+        }
+        .overlay .game-desc {
+            margin-top: 30px; color: #6070a0; font-size: 14px; text-align: center; line-height: 2;
+        }
+
+        /* ===== TOP BAR ===== */
+        #top-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 20px;
+            background: rgba(10,15,40,0.8);
+            border-bottom: 1px solid rgba(0,212,255,0.15);
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        #turn-info {
+            font-size: 16px; color: #8090c0;
+            background: rgba(0,212,255,0.1); padding: 6px 18px; border-radius: 20px;
+            border: 1px solid rgba(0,212,255,0.2);
+        }
+        #game-title-bar {
+            font-size: 20px; font-weight: 800; color: #00d4ff; letter-spacing: 4px;
+        }
+        #energy-info {
+            font-size: 18px; font-weight: 700; color: #ffd700;
+            background: rgba(255,215,0,0.1); padding: 6px 18px; border-radius: 20px;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+
+        /* ===== AI HAND INDICATOR ===== */
+        #ai-hand-area {
+            display: flex; justify-content: center; gap: 6px;
+            padding: 8px 0; min-height: 48px;
+        }
+        .ai-card-back {
+            width: 32px; height: 44px;
+            background: linear-gradient(135deg, #2a1040, #401060);
+            border: 1px solid rgba(255,0,255,0.3);
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: rgba(255,0,255,0.5);
+        }
+
+        /* ===== GAME BOARD ===== */
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 8px 12px;
+        }
+
+        .location {
+            background: rgba(15,20,50,0.9);
+            border: 1px solid rgba(0,212,255,0.15);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            min-height: 340px;
+            display: flex; flex-direction: column;
+        }
+        .location.unrevealed {
+            border-color: rgba(100,100,150,0.2);
+        }
+        .location.player-winning .location-header { border-bottom-color: rgba(0,255,136,0.4); }
+        .location.ai-winning .location-header { border-bottom-color: rgba(255,51,102,0.4); }
+        .location.tied .location-header { border-bottom-color: rgba(255,215,0,0.4); }
+
+        .location-header {
+            padding: 10px 12px;
+            background: rgba(0,212,255,0.05);
+            border-bottom: 2px solid rgba(0,212,255,0.1);
+            text-align: center;
+            min-height: 72px;
+        }
+        .location-name {
+            font-size: 15px; font-weight: 700; color: #00d4ff;
+            margin-bottom: 4px;
+        }
+        .location-effect {
+            font-size: 11px; color: #6080b0; line-height: 1.4;
+        }
+        .location.unrevealed .location-name { color: #405080; }
+        .location.unrevealed .location-effect { color: #304060; }
+
+        .location-board {
+            flex: 1; display: flex; flex-direction: column;
+        }
+
+        .side {
+            flex: 1; display: flex; flex-direction: column;
+            padding: 6px;
+            min-height: 100px;
+        }
+        .ai-side { justify-content: flex-start; }
+        .player-side { justify-content: flex-end; }
+
+        .side-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 4px;
+        }
+        .power-badge {
+            font-size: 16px; font-weight: 800;
+            padding: 2px 10px; border-radius: 10px;
+            min-width: 36px; text-align: center;
+        }
+        .power-badge.player-power {
+            background: rgba(0,180,255,0.15); color: #00d4ff;
+            border: 1px solid rgba(0,212,255,0.3);
+        }
+        .power-badge.ai-power {
+            background: rgba(255,0,100,0.15); color: #ff3366;
+            border: 1px solid rgba(255,51,102,0.3);
+        }
+        .power-badge.winning { animation: pulse 1.5s infinite; transform: scale(1.1); }
+        .side-label { font-size: 10px; color: #405070; text-transform: uppercase; letter-spacing: 1px; }
+
+        .cards-row {
+            display: flex; gap: 4px; flex-wrap: wrap;
+            justify-content: center;
+            min-height: 70px; align-items: center;
+        }
+
+        .board-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.2), transparent);
+            margin: 0 10px;
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            width: 76px; height: 100px;
+            background: linear-gradient(145deg, #141833, #1e2450);
+            border: 2px solid rgba(0,180,255,0.4);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s;
+            position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            user-select: none;
+            animation: slideUp 0.3s ease-out;
+        }
+        .card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,212,255,0.3);
+            z-index: 10;
+        }
+        .card.selected {
+            transform: translateY(-16px) scale(1.1);
+            border-color: #ffd700;
+            box-shadow: 0 0 25px rgba(255,215,0,0.5);
+        }
+        .card.pending {
+            opacity: 0.85;
+            border-style: dashed;
+            animation: cardPlay 0.4s ease-out;
+        }
+        .card.board-card {
+            width: 64px; height: 85px;
+            cursor: default;
+        }
+        .card.board-card.pending {
+            cursor: pointer;
+        }
+        .card.board-card:hover {
+            transform: translateY(-4px) scale(1.03);
+        }
+        .card.ai-card {
+            border-color: rgba(255,51,102,0.4);
+            background: linear-gradient(145deg, #1a0a1a, #2a1030);
+        }
+        .card.ai-card:hover {
+            box-shadow: 0 4px 15px rgba(255,51,102,0.3);
+        }
+        .card.hidden-card .card-emoji,
+        .card.hidden-card .card-name,
+        .card.hidden-card .card-power,
+        .card.hidden-card .card-cost {
+            visibility: hidden;
+        }
+        .card.hidden-card::after {
+            content: '?';
+            font-size: 28px; color: rgba(255,0,255,0.4);
+            position: absolute;
+        }
+        .card.cost-1 { border-color: rgba(100,200,255,0.4); }
+        .card.cost-2 { border-color: rgba(0,200,150,0.5); }
+        .card.cost-3 { border-color: rgba(0,180,255,0.5); }
+        .card.cost-4 { border-color: rgba(100,100,255,0.6); }
+        .card.cost-5 { border-color: rgba(180,80,255,0.6); }
+        .card.cost-6 { border-color: rgba(255,150,0,0.7); }
+        .card.ai-card.cost-1 { border-color: rgba(255,100,100,0.4); }
+        .card.ai-card.cost-2 { border-color: rgba(255,80,120,0.5); }
+        .card.ai-card.cost-3 { border-color: rgba(255,60,150,0.5); }
+        .card.ai-card.cost-4 { border-color: rgba(255,50,180,0.6); }
+        .card.ai-card.cost-5 { border-color: rgba(200,50,255,0.6); }
+        .card.ai-card.cost-6 { border-color: rgba(255,100,50,0.7); }
+
+        .card-cost {
+            position: absolute; top: 3px; left: 3px;
+            width: 20px; height: 20px;
+            background: linear-gradient(135deg, #1a3a6a, #0a2040);
+            border: 1.5px solid #4488cc;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 900; color: #6af;
+        }
+        .card-power {
+            position: absolute; bottom: 3px; right: 3px;
+            width: 22px; height: 22px;
+            background: linear-gradient(135deg, #1a4a1a, #0a2a0a);
+            border: 1.5px solid #44cc44;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 900; color: #4f4;
+        }
+        .card-power.buffed { color: #0f0; border-color: #0f0; text-shadow: 0 0 6px #0f0; }
+        .card-power.nerfed { color: #f44; border-color: #f44; }
+        .card-emoji {
+            font-size: 26px; margin-bottom: 2px;
+            filter: drop-shadow(0 0 4px rgba(0,212,255,0.3));
+        }
+        .card-name {
+            font-size: 9px; font-weight: 600; color: #a0b0d0;
+            text-align: center; line-height: 1.2;
+            max-width: 68px; overflow: hidden;
+        }
+        .board-card .card-emoji { font-size: 20px; }
+        .board-card .card-name { font-size: 8px; }
+
+        /* Card Tooltip */
+        .card .card-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 110%;
+            left: 50%; transform: translateX(-50%);
+            background: rgba(10,15,40,0.95);
+            border: 1px solid rgba(0,212,255,0.4);
+            border-radius: 8px;
+            padding: 10px 14px;
+            min-width: 180px;
+            z-index: 100;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .card:hover .card-tooltip { display: block; }
+        .ai-side .card .card-tooltip { bottom: auto; top: 110%; }
+        .card-tooltip .tt-name { font-size: 14px; font-weight: 700; color: #00d4ff; margin-bottom: 4px; }
+        .card-tooltip .tt-stats { font-size: 12px; color: #8090c0; margin-bottom: 6px; }
+        .card-tooltip .tt-desc { font-size: 12px; color: #a0b0d0; line-height: 1.5; }
+
+        /* ===== PLAYER HAND ===== */
+        #player-hand {
+            display: flex; justify-content: center; gap: 8px;
+            padding: 12px 20px;
+            min-height: 130px;
+            align-items: flex-end;
+            background: rgba(10,15,40,0.5);
+            border-top: 1px solid rgba(0,212,255,0.1);
+        }
+        #player-hand .card {
+            width: 90px; height: 120px;
+        }
+        #player-hand .card .card-emoji { font-size: 30px; }
+        #player-hand .card .card-name { font-size: 10px; }
+        #player-hand .card .card-cost { width: 22px; height: 22px; font-size: 13px; }
+        #player-hand .card .card-power { width: 24px; height: 24px; font-size: 14px; }
+        #player-hand .card.unplayable {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+        #player-hand .card.unplayable:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ===== CONTROLS ===== */
+        #controls {
+            display: flex; justify-content: center; gap: 16px;
+            padding: 12px;
+        }
+        .btn {
+            padding: 10px 36px; font-size: 16px; font-weight: 700;
+            border: 2px solid; border-radius: 25px;
+            cursor: pointer; transition: all 0.3s;
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff20, #0088ff20);
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #00d4ff, #0088ff);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(0,212,255,0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.3; cursor: not-allowed;
+            background: transparent;
+        }
+        .btn-primary:disabled:hover {
+            background: transparent; color: #00d4ff; box-shadow: none;
+        }
+        .btn-danger {
+            background: transparent;
+            border-color: rgba(255,51,102,0.5);
+            color: #ff3366;
+        }
+        .btn-danger:hover {
+            background: rgba(255,51,102,0.15);
+            box-shadow: 0 0 15px rgba(255,51,102,0.3);
+        }
+
+        /* ===== MESSAGE ===== */
+        #message {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10,15,40,0.95);
+            border: 2px solid #00d4ff;
+            border-radius: 16px;
+            padding: 24px 48px;
+            font-size: 22px; font-weight: 700; color: #00d4ff;
+            z-index: 500;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0,212,255,0.3);
+            animation: slideUp 0.3s ease-out;
+            pointer-events: none;
+        }
+        #message.hidden { display: none; }
+
+        /* ===== END SCREEN ===== */
+        #end-screen .result-locations {
+            display: flex; gap: 20px; margin: 30px 0;
+        }
+        .result-loc {
+            background: rgba(15,20,50,0.8);
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 12px;
+            padding: 16px 24px;
+            text-align: center;
+            min-width: 160px;
+        }
+        .result-loc.won { border-color: rgba(0,255,136,0.5); }
+        .result-loc.lost { border-color: rgba(255,51,102,0.5); }
+        .result-loc.draw { border-color: rgba(255,215,0,0.5); }
+        .result-loc .rl-name { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+        .result-loc .rl-score { font-size: 16px; }
+        .result-loc .rl-score .player-s { color: #00d4ff; }
+        .result-loc .rl-score .ai-s { color: #ff3366; }
+        .result-loc .rl-result { font-size: 13px; margin-top: 6px; font-weight: 700; }
+        .result-loc.won .rl-result { color: #00ff88; }
+        .result-loc.lost .rl-result { color: #ff3366; }
+        .result-loc.draw .rl-result { color: #ffd700; }
+        #end-screen h1.victory { color: #00ff88; }
+        #end-screen h1.defeat { color: #ff3366; }
+        #end-screen h1.draw-result { color: #ffd700; }
+        #end-screen .final-score {
+            font-size: 20px; color: #8090c0; margin-bottom: 20px;
+        }
+
+        /* ===== LOCATION CLICK TARGET ===== */
+        .location-clickable {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .location-clickable:hover {
+            background: rgba(0,212,255,0.05);
+        }
+        .location-clickable.highlighted {
+            animation: glowPulse 1.5s infinite;
+        }
+        .location.full .location-clickable {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            #board { gap: 6px; padding: 4px; }
+            .card { width: 60px; height: 80px; }
+            .board-card { width: 52px; height: 70px; }
+            #player-hand .card { width: 70px; height: 95px; }
+            .location-name { font-size: 12px; }
+            .location-effect { font-size: 9px; }
+        }
+
+        .ability-flash {
+            animation: shake 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- Start Screen -->
+    <div id="start-screen" class="overlay">
+        <h1>AI SNAP</h1>
+        <div class="subtitle">智 能 对 决</div>
+        <button class="btn-start" onclick="startGame()">开 始 游 戏</button>
+        <div class="game-desc">
+            🎮 类似漫威终极逆转的AI主题卡牌对战<br>
+            🃏 12张科技主题卡牌 | 3个战场位置 | 6回合制<br>
+            🤖 控制更多位置即可获胜<br>
+            ⚡ 每回合能量递增，策略出牌
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" style="display:none">
+        <div id="top-bar">
+            <div id="turn-info">回合 1/6</div>
+            <div id="game-title-bar">AI SNAP</div>
+            <div id="energy-info">⚡ 0/0</div>
+        </div>
+        <div id="ai-hand-area"></div>
+        <div id="board"></div>
+        <div id="player-hand"></div>
+        <div id="controls">
+            <button class="btn btn-primary" id="end-turn-btn" onclick="endTurn()">结束回合</button>
+            <button class="btn btn-danger" onclick="retreat()">撤 退</button>
+        </div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen" class="overlay" style="display:none">
+        <h1 id="result-text"></h1>
+        <div class="final-score" id="final-score"></div>
+        <div class="result-locations" id="result-locations"></div>
+        <button class="btn-start" onclick="restartGame()">再 来 一 局</button>
+    </div>
+
+    <!-- Message Popup -->
+    <div id="message" class="hidden"></div>
+</div>
+
+<script>
+// ============================================================
+//  SECTION 1: GAME DATA
+// ============================================================
+
+const ALL_CARDS = [
+    {
+        id: 1, name: '数据节点', cost: 1, basePower: 2, emoji: '🔗',
+        desc: '基础AI计算单元', abilityType: 'none'
+    },
+    {
+        id: 2, name: '智能算法', cost: 1, basePower: 1, emoji: '⚡',
+        desc: '持续：每回合开始时+1力量', abilityType: 'ongoing_grow'
+    },
+    {
+        id: 3, name: '网络爬虫', cost: 2, basePower: 3, emoji: '🕷️',
+        desc: '出牌时：抽一张牌', abilityType: 'draw_card'
+    },
+    {
+        id: 4, name: '防火墙', cost: 2, basePower: 4, emoji: '🛡️',
+        desc: '数字防线，坚不可摧', abilityType: 'none'
+    },
+    {
+        id: 5, name: '深度学习', cost: 3, basePower: 2, emoji: '🧠',
+        desc: '出牌时：此位置友方每张卡+2力量(含自身)', abilityType: 'boost_allies'
+    },
+    {
+        id: 6, name: '神经网络', cost: 3, basePower: 5, emoji: '🌐',
+        desc: '出牌时：相邻位置友方卡牌各+1力量', abilityType: 'boost_adjacent'
+    },
+    {
+        id: 7, name: '赛博黑客', cost: 3, basePower: 4, emoji: '💀',
+        desc: '出牌时：此位置一张随机敌方卡-3力量', abilityType: 'weaken_enemy'
+    },
+    {
+        id: 8, name: '云计算集群', cost: 4, basePower: 6, emoji: '☁️',
+        desc: '强大的分布式算力', abilityType: 'none'
+    },
+    {
+        id: 9, name: '强化学习', cost: 4, basePower: 3, emoji: '🎯',
+        desc: '出牌时：若正在输掉此位置，+5力量', abilityType: 'underdog'
+    },
+    {
+        id: 10, name: '大语言模型', cost: 5, basePower: 3, emoji: '💬',
+        desc: '出牌时：此位置所有友方卡牌力量翻倍', abilityType: 'double_allies'
+    },
+    {
+        id: 11, name: '量子计算机', cost: 5, basePower: 8, emoji: '⚛️',
+        desc: '出牌时：50%概率力量翻倍，50%概率-5', abilityType: 'quantum_gamble'
+    },
+    {
+        id: 12, name: '超级智能', cost: 6, basePower: 10, emoji: '👁️',
+        desc: '出牌时：摧毁此位置所有力量≤3的敌方卡', abilityType: 'destroy_weak'
+    }
+];
+
+const ALL_LOCATIONS = [
+    { id: 1, name: '中央数据中心', emoji: '🏢', effect: '所有卡牌+1力量', effectType: 'power_boost_all', value: 1 },
+    { id: 2, name: '暗网黑市', emoji: '🕶️', effect: '双方卡牌隐藏至游戏结束', effectType: 'hidden', value: 0 },
+    { id: 3, name: '硅谷总部', emoji: '🏙️', effect: '每方第一张卡+3力量', effectType: 'first_card_boost', value: 3 },
+    { id: 4, name: '量子实验室', emoji: '🔬', effect: '费用≥4的卡牌+3力量', effectType: 'high_cost_boost', value: 3 },
+    { id: 5, name: '开源社区', emoji: '🌍', effect: '无特殊效果', effectType: 'none', value: 0 },
+    { id: 6, name: '算力矿场', emoji: '⛏️', effect: '拥有更多卡牌的一方额外+4', effectType: 'more_cards_bonus', value: 4 },
+    { id: 7, name: '芯片工厂', emoji: '🏭', effect: '1-2费卡牌+3力量', effectType: 'low_cost_boost', value: 3 },
+    { id: 8, name: '元宇宙空间', emoji: '🌌', effect: '力量最大的卡额外+3', effectType: 'strongest_boost', value: 3 }
+];
+
+const MAX_CARDS_PER_LOCATION = 4;
+const MAX_TURNS = 6;
+const STARTING_HAND_SIZE = 3;
+
+// ============================================================
+//  SECTION 2: GAME STATE
+// ============================================================
+
+let nextInstanceId = 1;
+let gs = null; // game state
+
+function createInitialState() {
+    return {
+        turn: 0,
+        energy: 0,
+        phase: 'idle', // idle, playing, resolving, gameOver
+        player: { deck: [], hand: [] },
+        ai: { deck: [], hand: [] },
+        locations: [
+            { template: null, revealed: false, playerCards: [], aiCards: [] },
+            { template: null, revealed: false, playerCards: [], aiCards: [] },
+            { template: null, revealed: false, playerCards: [], aiCards: [] }
+        ],
+        locationTemplates: [], // 3 chosen locations
+        selectedCardIdx: -1,
+        pendingPlays: [], // { instanceId, handIdx, locIdx }
+        gameOver: false,
+        turnEnded: false
+    };
+}
+
+// ============================================================
+//  SECTION 3: UTILITY FUNCTIONS
+// ============================================================
+
+function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function createCardInstance(template, owner) {
+    return {
+        ...template,
+        instanceId: nextInstanceId++,
+        currentPower: template.basePower,
+        owner,
+        turnPlayed: -1,
+        revealed: true
+    };
+}
+
+function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
+// ============================================================
+//  SECTION 4: GAME LOGIC
+// ============================================================
+
+function startGame() {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('end-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display = '';
+
+    nextInstanceId = 1;
+    gs = createInitialState();
+
+    // Select 3 random locations
+    gs.locationTemplates = shuffleArray(ALL_LOCATIONS).slice(0, 3);
+
+    // Create decks (both players get a shuffled copy of all 12 cards)
+    gs.player.deck = shuffleArray(ALL_CARDS.map(c => createCardInstance(c, 'player')));
+    gs.ai.deck = shuffleArray(ALL_CARDS.map(c => createCardInstance(c, 'ai')));
+
+    // Draw starting hands
+    for (let i = 0; i < STARTING_HAND_SIZE; i++) {
+        drawCard('player');
+        drawCard('ai');
+    }
+
+    startTurn();
+}
+
+function drawCard(owner) {
+    const data = gs[owner];
+    if (data.deck.length > 0 && data.hand.length < 7) {
+        data.hand.push(data.deck.pop());
+    }
+}
+
+function startTurn() {
+    gs.turn++;
+    gs.energy = gs.turn;
+    gs.phase = 'playing';
+    gs.selectedCardIdx = -1;
+    gs.pendingPlays = [];
+    gs.turnEnded = false;
+
+    // Reveal location (turns 1,2,3)
+    if (gs.turn <= 3) {
+        gs.locations[gs.turn - 1].template = gs.locationTemplates[gs.turn - 1];
+        gs.locations[gs.turn - 1].revealed = true;
+    }
+
+    // Draw card (except turn 1)
+    if (gs.turn > 1) {
+        drawCard('player');
+        drawCard('ai');
+    }
+
+    // Process ongoing abilities
+    resolveOngoing();
+
+    render();
+    showMessage(`回合 ${gs.turn}`);
+}
+
+function getUsedEnergy() {
+    let used = 0;
+    gs.pendingPlays.forEach(p => {
+        const card = findCardByInstanceId(p.instanceId);
+        if (card) used += card.cost;
+    });
+    return used;
+}
+
+function getRemainingEnergy() {
+    return gs.energy - getUsedEnergy();
+}
+
+function findCardByInstanceId(id) {
+    // Search hand
+    for (const c of gs.player.hand) if (c.instanceId === id) return c;
+    // Search pending plays (they might still be in hand reference)
+    for (const loc of gs.locations) {
+        for (const c of loc.playerCards) if (c.instanceId === id) return c;
+        for (const c of loc.aiCards) if (c.instanceId === id) return c;
+    }
+    return null;
+}
+
+function selectCard(handIdx) {
+    if (gs.phase !== 'playing' || gs.turnEnded) return;
+    const card = gs.player.hand[handIdx];
+    if (!card) return;
+    if (card.cost > getRemainingEnergy()) return;
+
+    if (gs.selectedCardIdx === handIdx) {
+        gs.selectedCardIdx = -1; // Deselect
+    } else {
+        gs.selectedCardIdx = handIdx;
+    }
+    render();
+}
+
+function playCardAtLocation(locIdx) {
+    if (gs.phase !== 'playing' || gs.turnEnded) return;
+    if (gs.selectedCardIdx < 0) return;
+
+    const loc = gs.locations[locIdx];
+    if (!loc.revealed) return;
+    if (loc.playerCards.length >= MAX_CARDS_PER_LOCATION) return;
+
+    const card = gs.player.hand[gs.selectedCardIdx];
+    if (!card) return;
+    if (card.cost > getRemainingEnergy()) return;
+
+    // Remove from hand
+    gs.player.hand.splice(gs.selectedCardIdx, 1);
+    card.turnPlayed = gs.turn;
+    loc.playerCards.push(card);
+
+    gs.pendingPlays.push({ instanceId: card.instanceId, locIdx });
+    gs.selectedCardIdx = -1;
+    render();
+}
+
+function undoPendingCard(instanceId) {
+    if (gs.phase !== 'playing' || gs.turnEnded) return;
+
+    const pendingIdx = gs.pendingPlays.findIndex(p => p.instanceId === instanceId);
+    if (pendingIdx < 0) return;
+
+    const pending = gs.pendingPlays[pendingIdx];
+    const loc = gs.locations[pending.locIdx];
+    const cardIdx = loc.playerCards.findIndex(c => c.instanceId === instanceId);
+    if (cardIdx < 0) return;
+
+    const card = loc.playerCards.splice(cardIdx, 1)[0];
+    card.turnPlayed = -1;
+    gs.player.hand.push(card);
+    gs.pendingPlays.splice(pendingIdx, 1);
+    render();
+}
+
+function endTurn() {
+    if (gs.phase !== 'playing' || gs.turnEnded) return;
+    gs.turnEnded = true;
+    gs.phase = 'resolving';
+
+    // AI plays
+    aiPlayTurn();
+
+    // Resolve all new cards (on-reveal abilities)
+    // Player cards first, then AI
+    gs.pendingPlays.forEach(p => {
+        const card = findCardByInstanceId(p.instanceId);
+        if (card) resolveOnReveal(card, p.locIdx);
+    });
+
+    // AI pending plays are resolved
+    gs.aiPendingPlays.forEach(p => {
+        const card = findCardByInstanceId(p.instanceId);
+        if (card) resolveOnReveal(card, p.locIdx);
+    });
+
+    // Apply location effects to newly placed cards
+    applyLocationEffects();
+
+    // Clear pending
+    gs.pendingPlays = [];
+    gs.aiPendingPlays = [];
+
+    render();
+
+    // Check game end
+    if (gs.turn >= MAX_TURNS) {
+        setTimeout(() => endGame(), 800);
+    } else {
+        setTimeout(() => startTurn(), 1000);
+    }
+}
+
+function retreat() {
+    gs.phase = 'gameOver';
+    gs.gameOver = true;
+    showEndScreen('defeat', '你选择了撤退');
+}
+
+// ============================================================
+//  SECTION 5: ABILITY RESOLUTION
+// ============================================================
+
+function resolveOnReveal(card, locIdx) {
+    const owner = card.owner;
+    const loc = gs.locations[locIdx];
+    const friendlyCards = owner === 'player' ? loc.playerCards : loc.aiCards;
+    const enemyCards = owner === 'player' ? loc.aiCards : loc.playerCards;
+
+    switch (card.abilityType) {
+        case 'draw_card':
+            drawCard(owner);
+            break;
+
+        case 'boost_allies':
+            friendlyCards.forEach(c => { c.currentPower += 2; });
+            break;
+
+        case 'boost_adjacent':
+            [-1, 1].forEach(d => {
+                const adjIdx = locIdx + d;
+                if (adjIdx >= 0 && adjIdx < 3) {
+                    const adjFriendly = owner === 'player'
+                        ? gs.locations[adjIdx].playerCards
+                        : gs.locations[adjIdx].aiCards;
+                    adjFriendly.forEach(c => { c.currentPower += 1; });
+                }
+            });
+            break;
+
+        case 'weaken_enemy':
+            if (enemyCards.length > 0) {
+                const target = enemyCards[Math.floor(Math.random() * enemyCards.length)];
+                target.currentPower = Math.max(0, target.currentPower - 3);
+            }
+            break;
+
+        case 'underdog': {
+            const friendlyPower = friendlyCards.reduce((s, c) => s + c.currentPower, 0);
+            const enemyPower = enemyCards.reduce((s, c) => s + c.currentPower, 0);
+            if (friendlyPower <= enemyPower) {
+                card.currentPower += 5;
+            }
+            break;
+        }
+
+        case 'double_allies':
+            friendlyCards.forEach(c => {
+                if (c.instanceId !== card.instanceId) {
+                    c.currentPower *= 2;
+                }
+            });
+            break;
+
+        case 'quantum_gamble':
+            if (Math.random() < 0.5) {
+                card.currentPower *= 2;
+            } else {
+                card.currentPower = Math.max(0, card.currentPower - 5);
+            }
+            break;
+
+        case 'destroy_weak': {
+            const toRemove = [];
+            enemyCards.forEach((c, i) => {
+                if (c.currentPower <= 3) toRemove.push(i);
+            });
+            // Remove in reverse order
+            for (let i = toRemove.length - 1; i >= 0; i--) {
+                enemyCards.splice(toRemove[i], 1);
+            }
+            break;
+        }
+    }
+}
+
+function resolveOngoing() {
+    // Process ongoing abilities for all cards on board
+    for (let locIdx = 0; locIdx < 3; locIdx++) {
+        const loc = gs.locations[locIdx];
+        [...loc.playerCards, ...loc.aiCards].forEach(card => {
+            if (card.abilityType === 'ongoing_grow') {
+                card.currentPower += 1;
+            }
+        });
+    }
+}
+
+function applyLocationEffects() {
+    for (let locIdx = 0; locIdx < 3; locIdx++) {
+        const loc = gs.locations[locIdx];
+        if (!loc.template) continue;
+        const template = loc.template;
+        const allCards = [...loc.playerCards, ...loc.aiCards];
+
+        allCards.forEach(card => {
+            if (card.turnPlayed !== gs.turn) return; // Only new cards
+
+            switch (template.effectType) {
+                case 'power_boost_all':
+                    card.currentPower += template.value;
+                    break;
+
+                case 'first_card_boost': {
+                    const ownerCards = card.owner === 'player' ? loc.playerCards : loc.aiCards;
+                    // Only boost if this is the very first card placed here by this owner
+                    if (ownerCards.length === 1 && ownerCards[0].instanceId === card.instanceId) {
+                        card.currentPower += template.value;
+                    }
+                    break;
+                }
+
+                case 'high_cost_boost':
+                    if (card.cost >= 4) card.currentPower += template.value;
+                    break;
+
+                case 'low_cost_boost':
+                    if (card.cost <= 2) card.currentPower += template.value;
+                    break;
+            }
+        });
+
+        // Strongest boost - applied to ALL cards (recalculate)
+        if (template.effectType === 'strongest_boost') {
+            ['playerCards', 'aiCards'].forEach(side => {
+                const cards = loc[side].filter(c => c.turnPlayed === gs.turn);
+                if (cards.length > 0) {
+                    const maxPow = Math.max(...cards.map(c => c.currentPower));
+                    cards.filter(c => c.currentPower === maxPow)
+                         .forEach(c => { c.currentPower += template.value; });
+                }
+            });
+        }
+    }
+}
+
+function getLocationPower(locIdx, owner) {
+    const loc = gs.locations[locIdx];
+    if (!loc) return 0;
+    const cards = owner === 'player' ? loc.playerCards : loc.aiCards;
+    let total = cards.reduce((sum, c) => sum + c.currentPower, 0);
+
+    // Location bonus: more_cards_bonus
+    if (loc.template && loc.template.effectType === 'more_cards_bonus') {
+        const pCount = loc.playerCards.length;
+        const aCount = loc.aiCards.length;
+        if (owner === 'player' && pCount > aCount) total += loc.template.value;
+        if (owner === 'ai' && aCount > pCount) total += loc.template.value;
+    }
+
+    return total;
+}
+
+function getLocationWinner(locIdx) {
+    const pp = getLocationPower(locIdx, 'player');
+    const ap = getLocationPower(locIdx, 'ai');
+    if (pp > ap) return 'player';
+    if (ap > pp) return 'ai';
+    return 'tie';
+}
+
+// ============================================================
+//  SECTION 6: AI LOGIC
+// ============================================================
+
+function aiPlayTurn() {
+    gs.aiPendingPlays = [];
+    let aiEnergy = gs.energy;
+    const hand = [...gs.ai.hand];
+
+    // Sort by cost descending (greedy: play most expensive first)
+    const playable = hand.filter(c => c.cost <= aiEnergy).sort((a, b) => b.cost - a.cost);
+
+    for (const card of playable) {
+        if (card.cost > aiEnergy) continue;
+
+        // Choose best location
+        const bestLoc = chooseBestLocation(card);
+        if (bestLoc < 0) continue;
+
+        // Play card
+        const handIdx = gs.ai.hand.findIndex(c => c.instanceId === card.instanceId);
+        if (handIdx < 0) continue;
+
+        gs.ai.hand.splice(handIdx, 1);
+        card.turnPlayed = gs.turn;
+        gs.locations[bestLoc].aiCards.push(card);
+        gs.aiPendingPlays.push({ instanceId: card.instanceId, locIdx: bestLoc });
+        aiEnergy -= card.cost;
+    }
+}
+
+function chooseBestLocation(card) {
+    let bestScore = -Infinity;
+    let bestLoc = -1;
+
+    for (let i = 0; i < 3; i++) {
+        const loc = gs.locations[i];
+        if (!loc.revealed) continue;
+        if (loc.aiCards.length >= MAX_CARDS_PER_LOCATION) continue;
+
+        let score = 0;
+        const aiPow = getLocationPower(i, 'ai');
+        const playerPow = getLocationPower(i, 'player');
+        const diff = playerPow - aiPow;
+
+        // Prefer locations where we're behind but can catch up
+        if (diff > 0 && diff <= card.currentPower + 3) {
+            score += 15;
+        }
+        // Prefer locations where we're slightly ahead (maintain lead)
+        else if (diff <= 0 && diff > -5) {
+            score += 8;
+        }
+        // Prefer empty locations
+        if (loc.aiCards.length === 0) score += 5;
+        // Don't over-stack
+        if (loc.aiCards.length >= 3) score -= 10;
+        // Prefer fewer cards (spread)
+        score -= loc.aiCards.length * 2;
+        // Card synergy with location
+        if (loc.template) {
+            if (loc.template.effectType === 'high_cost_boost' && card.cost >= 4) score += 8;
+            if (loc.template.effectType === 'low_cost_boost' && card.cost <= 2) score += 8;
+            if (loc.template.effectType === 'power_boost_all') score += 3;
+            if (loc.template.effectType === 'more_cards_bonus') score += 3;
+        }
+        // Ability synergy
+        if (card.abilityType === 'boost_allies' && loc.aiCards.length >= 2) score += 10;
+        if (card.abilityType === 'weaken_enemy' && loc.playerCards.length > 0) score += 5;
+        if (card.abilityType === 'underdog' && diff > 0) score += 12;
+        if (card.abilityType === 'destroy_weak') {
+            const weakCards = loc.playerCards.filter(c => c.currentPower <= 3);
+            score += weakCards.length * 6;
+        }
+        if (card.abilityType === 'double_allies' && loc.aiCards.length >= 2) score += 15;
+
+        // Add small randomness
+        score += Math.random() * 4;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestLoc = i;
+        }
+    }
+    return bestLoc;
+}
+
+// ============================================================
+//  SECTION 7: END GAME
+// ============================================================
+
+function endGame() {
+    gs.phase = 'gameOver';
+    gs.gameOver = true;
+
+    let playerWins = 0, aiWins = 0;
+    for (let i = 0; i < 3; i++) {
+        const w = getLocationWinner(i);
+        if (w === 'player') playerWins++;
+        else if (w === 'ai') aiWins++;
+    }
+
+    let result;
+    if (playerWins > aiWins) result = 'victory';
+    else if (aiWins > playerWins) result = 'defeat';
+    else result = 'draw';
+
+    showEndScreen(result, `${playerWins} - ${aiWins}`);
+}
+
+function showEndScreen(result, scoreText) {
+    document.getElementById('game-screen').style.display = 'none';
+    const endScreen = document.getElementById('end-screen');
+    endScreen.style.display = '';
+
+    const resultText = document.getElementById('result-text');
+    const finalScore = document.getElementById('final-score');
+    const resultLocs = document.getElementById('result-locations');
+
+    if (result === 'victory') {
+        resultText.textContent = '🎉 胜利！';
+        resultText.className = 'victory';
+    } else if (result === 'defeat') {
+        resultText.textContent = '💀 失败';
+        resultText.className = 'defeat';
+    } else {
+        resultText.textContent = '🤝 平局';
+        resultText.className = 'draw-result';
+    }
+
+    finalScore.textContent = `位置得分: ${scoreText}`;
+
+    let locsHtml = '';
+    for (let i = 0; i < 3; i++) {
+        const loc = gs.locations[i];
+        const pp = getLocationPower(i, 'player');
+        const ap = getLocationPower(i, 'ai');
+        const w = getLocationWinner(i);
+        const cls = w === 'player' ? 'won' : w === 'ai' ? 'lost' : 'draw';
+        const wText = w === 'player' ? '✓ 胜出' : w === 'ai' ? '✗ 失守' : '— 平局';
+        const name = loc.template ? `${loc.template.emoji} ${loc.template.name}` : '未揭示';
+        locsHtml += `<div class="result-loc ${cls}">
+            <div class="rl-name">${name}</div>
+            <div class="rl-score"><span class="player-s">${pp}</span> vs <span class="ai-s">${ap}</span></div>
+            <div class="rl-result">${wText}</div>
+        </div>`;
+    }
+    resultLocs.innerHTML = locsHtml;
+}
+
+function restartGame() {
+    startGame();
+}
+
+// ============================================================
+//  SECTION 8: UI RENDERING
+// ============================================================
+
+function render() {
+    renderTopBar();
+    renderAIHand();
+    renderBoard();
+    renderPlayerHand();
+    renderControls();
+}
+
+function renderTopBar() {
+    const remaining = getRemainingEnergy();
+    document.getElementById('turn-info').textContent = `回合 ${gs.turn}/${MAX_TURNS}`;
+    document.getElementById('energy-info').textContent = `⚡ ${remaining}/${gs.energy}`;
+}
+
+function renderAIHand() {
+    const area = document.getElementById('ai-hand-area');
+    let html = '';
+    for (let i = 0; i < gs.ai.hand.length; i++) {
+        html += '<div class="ai-card-back">AI</div>';
+    }
+    area.innerHTML = html;
+}
+
+function renderBoard() {
+    const board = document.getElementById('board');
+    let html = '';
+
+    for (let locIdx = 0; locIdx < 3; locIdx++) {
+        const loc = gs.locations[locIdx];
+        const revealed = loc.revealed;
+        const template = loc.template;
+        const isHidden = template && template.effectType === 'hidden' && !gs.gameOver;
+        const pp = getLocationPower(locIdx, 'player');
+        const ap = getLocationPower(locIdx, 'ai');
+        const winner = getLocationWinner(locIdx);
+        const winClass = winner === 'player' ? 'player-winning' : winner === 'ai' ? 'ai-winning' : (pp > 0 || ap > 0 ? 'tied' : '');
+        const isFull = loc.playerCards.length >= MAX_CARDS_PER_LOCATION;
+        const canPlay = gs.selectedCardIdx >= 0 && revealed && !isFull && !gs.turnEnded;
+
+        html += `<div class="location ${revealed ? '' : 'unrevealed'} ${winClass} ${isFull ? 'full' : ''}">`;
+
+        // Header
+        html += `<div class="location-header">`;
+        if (revealed && template) {
+            html += `<div class="location-name">${template.emoji} ${template.name}</div>`;
+            html += `<div class="location-effect">${template.effect}</div>`;
+        } else {
+            html += `<div class="location-name">❓ 未知区域</div>`;
+            html += `<div class="location-effect">第${locIdx + 1}回合揭示</div>`;
+        }
+        html += `</div>`;
+
+        html += `<div class="location-board location-clickable ${canPlay ? 'highlighted' : ''}" onclick="playCardAtLocation(${locIdx})">`;
+
+        // AI side
+        html += `<div class="side ai-side">`;
+        html += `<div class="side-header"><span class="side-label">🤖 AI</span><span class="power-badge ai-power ${winner === 'ai' ? 'winning' : ''}">${ap}</span></div>`;
+        html += `<div class="cards-row">`;
+        loc.aiCards.forEach(card => {
+            html += renderBoardCard(card, isHidden);
+        });
+        html += `</div></div>`;
+
+        html += `<div class="board-divider"></div>`;
+
+        // Player side
+        html += `<div class="side player-side">`;
+        html += `<div class="cards-row">`;
+        loc.playerCards.forEach(card => {
+            const isPending = gs.pendingPlays.some(p => p.instanceId === card.instanceId);
+            html += renderBoardCard(card, false, isPending);
+        });
+        html += `</div>`;
+        html += `<div class="side-header"><span class="side-label">🧑 你</span><span class="power-badge player-power ${winner === 'player' ? 'winning' : ''}">${pp}</span></div>`;
+        html += `</div>`;
+
+        html += `</div></div>`;
+    }
+
+    board.innerHTML = html;
+}
+
+function renderBoardCard(card, hidden, isPending) {
+    const isAI = card.owner === 'ai';
+    const powerChanged = card.currentPower !== card.basePower;
+    const buffed = card.currentPower > card.basePower;
+    const powerClass = powerChanged ? (buffed ? 'buffed' : 'nerfed') : '';
+
+    let cls = `card board-card ${isAI ? 'ai-card' : ''} cost-${card.cost}`;
+    if (hidden) cls += ' hidden-card';
+    if (isPending) cls += ' pending';
+
+    const onclick = isPending ? `onclick="undoPendingCard(${card.instanceId})"` : '';
+
+    return `<div class="${cls}" ${onclick}>
+        <div class="card-cost">${card.cost}</div>
+        <div class="card-emoji">${card.emoji}</div>
+        <div class="card-name">${card.name}</div>
+        <div class="card-power ${powerClass}">${card.currentPower}</div>
+        <div class="card-tooltip">
+            <div class="tt-name">${card.emoji} ${card.name}</div>
+            <div class="tt-stats">${card.cost}费 / ${card.currentPower}力</div>
+            <div class="tt-desc">${card.desc}</div>
+        </div>
+    </div>`;
+}
+
+function renderPlayerHand() {
+    const hand = document.getElementById('player-hand');
+    let html = '';
+    const remaining = getRemainingEnergy();
+
+    gs.player.hand.forEach((card, idx) => {
+        const canAfford = card.cost <= remaining;
+        const isSelected = gs.selectedCardIdx === idx;
+        const playable = canAfford && !gs.turnEnded;
+        const powerChanged = card.currentPower !== card.basePower;
+        const buffed = card.currentPower > card.basePower;
+        const powerClass = powerChanged ? (buffed ? 'buffed' : 'nerfed') : '';
+
+        let cls = `card cost-${card.cost}`;
+        if (isSelected) cls += ' selected';
+        if (!playable) cls += ' unplayable';
+
+        html += `<div class="${cls}" onclick="selectCard(${idx})">
+            <div class="card-cost">${card.cost}</div>
+            <div class="card-emoji">${card.emoji}</div>
+            <div class="card-name">${card.name}</div>
+            <div class="card-power ${powerClass}">${card.currentPower}</div>
+            <div class="card-tooltip">
+                <div class="tt-name">${card.emoji} ${card.name}</div>
+                <div class="tt-stats">${card.cost}费 / ${card.currentPower}力</div>
+                <div class="tt-desc">${card.desc}</div>
+            </div>
+        </div>`;
+    });
+
+    hand.innerHTML = html;
+}
+
+function renderControls() {
+    const btn = document.getElementById('end-turn-btn');
+    btn.disabled = gs.turnEnded || gs.phase === 'resolving' || gs.phase === 'gameOver';
+}
+
+// ============================================================
+//  SECTION 9: MESSAGE SYSTEM
+// ============================================================
+
+let messageTimer = null;
+
+function showMessage(text, duration) {
+    duration = duration || 1200;
+    const el = document.getElementById('message');
+    el.textContent = text;
+    el.classList.remove('hidden');
+    if (messageTimer) clearTimeout(messageTimer);
+    messageTimer = setTimeout(() => {
+        el.classList.add('hidden');
+    }, duration);
+}
+
+// ============================================================
+//  SECTION 10: INITIALIZATION
+// ============================================================
+
+// Make functions globally accessible for inline onclick handlers
+window.startGame = startGame;
+window.restartGame = restartGame;
+window.selectCard = selectCard;
+window.playCardAtLocation = playCardAtLocation;
+window.undoPendingCard = undoPendingCard;
+window.endTurn = endTurn;
+window.retreat = retreat;
+</script>
+</body>
+</html>
